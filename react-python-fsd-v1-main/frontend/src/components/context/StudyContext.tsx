@@ -29,6 +29,7 @@ interface StudyContextType {
   updateSession: (session: StudySession) => void;
   clearData: () => void;
   addSession: (session: StudySession) => void;
+  syncStudyPlans: (plans: any[]) => void;
 }
 
 const defaultAvailability: DailyAvailability[] = [
@@ -198,6 +199,29 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({
     setSessions((prev) => [...prev, session]);
   };
 
+  const syncStudyPlans = (plans: any[]) => {
+    // Convert backend study plans to local subject format
+    const newSubjects = plans.map(plan => ({
+      id: `subject-${plan.id}`,
+      name: plan.subject,
+      color: '#6366f1', // default color, or map if available
+      chapters: [
+        {
+          id: `chapter-${plan.id}-1`,
+          name: 'Default Chapter',
+          difficulty: 'medium',
+          estimatedHours: 2,
+          completed: false,
+        },
+      ],
+      examDate: plan.exam_date,
+      priority: 0,
+    }));
+    setSubjects(newSubjects);
+    // Regenerate sessions for new subjects
+    setTimeout(() => generatePlan(), 0);
+  };
+
   return (
     <StudyContext.Provider
       value={{
@@ -215,6 +239,7 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({
         updateSession,
         clearData,
         addSession,
+        syncStudyPlans,
       }}
     >
       {children}

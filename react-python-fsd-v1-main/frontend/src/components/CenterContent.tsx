@@ -3,7 +3,8 @@ import Dashboard from "./Dashboard";
 import StudyTimer from "./StudyTimer";
 import { Plus } from "lucide-react";
 import AddSessionModal from "./AddSessionModal";
-import { StudySession, User } from "../types";
+import { StudySession } from "../types/index copy";
+import { User } from "../types";
 import { generateMockSessions, mockUser } from "../data/mockData";
 import useLocalStorage from "../hooks/useLocalStorage";
 import AchievementsView from "./achievements/AchievementsView";
@@ -11,7 +12,7 @@ import AnalyticsView from "./analytics/AnalyticsView";
 import StudyGroupsView from "./social/StudyGroupsView";
 import MessagesView from "./messages/MessagesView";
 import Header from "./Header";
-import { StudyProvider } from "./context/StudyContext";
+import { StudyProvider, useStudyContext } from "./context/StudyContext";
 import AvailabilityTab from "./availability/AvailabilityTab";
 import SubjectsTab from "./subjects/SubjectsTab";
 import TimetableTab from "./timetable/TimetableTab";
@@ -19,60 +20,28 @@ import TimetableTab from "./timetable/TimetableTab";
 
 interface CenterContentProps {
   activeTab: string;
+  setActiveTab: (tab: string) => void;
 }
 
-const CenterContent: React.FC<CenterContentProps> = ({ activeTab }) => {
-  const [user, setUser] = useLocalStorage<User>("user", mockUser);
-  const [sessions, setSessions] = useLocalStorage<StudySession[]>(
-    "sessions",
-    generateMockSessions()
-  );
+const CenterContent: React.FC<CenterContentProps> = ({ activeTab, setActiveTab }) => {
+  const { sessions } = useStudyContext();
+  const [user] = useLocalStorage<User>("user", mockUser);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleAddSession = (newSession: StudySession) => {
-    setSessions([...sessions, newSession]);
-
-    const updatedUser = { ...user };
-    updatedUser.totalStudyHours += newSession.duration / 60;
-
-    if (newSession.date === new Date().toISOString().split("T")[0]) {
-      updatedUser.currentStreak += 1;
-      updatedUser.longestStreak = Math.max(
-        updatedUser.currentStreak,
-        updatedUser.longestStreak
-      );
-    }
-
-    setUser(updatedUser);
-  };
-
-  const handleTimerComplete = (duration: number) => {
-    const newSession: StudySession = {
-      id: Math.random().toString(36).substr(2, 9),
-      subject: "Unspecified",
-      duration,
-      date: new Date().toISOString().split("T")[0],
-      mood: "focused",
-    };
-
-    handleAddSession(newSession);
-  };
-
   const handleReset = () => {
-    setSessions([]);
-    setUser({
-      ...mockUser,
-      currentStreak: 0,
-      longestStreak: 0,
-      totalStudyHours: 0,
-    });
+    localStorage.clear();
+    window.location.reload();
   };
 
   const renderContent = () => {
     switch (activeTab) {
       case "dashboard":
         return (
-          <Dashboard user={user} sessions={sessions} onReset={handleReset} />
+          <Dashboard 
+            user={user} 
+            onReset={handleReset} 
+            setActiveTab={setActiveTab} 
+          />
         );
       case "subjects":
         return (
@@ -96,123 +65,33 @@ const CenterContent: React.FC<CenterContentProps> = ({ activeTab }) => {
             </div>
           </StudyProvider>
         );
-      case "availability":
-        return (
-          <StudyProvider>
-            <div className="min-h-screen bg-slate-50">
-              <Header
-                user={user}
-                setShowSidebar={() => {}}
-                onReset={handleReset}
-              />
-
-              <main className="container mx-auto px-4 py-6">
-                <div className="max-w-6xl mx-auto">
-                  <AvailabilityTab />
-                </div>
-              </main>
-
-              <footer className="bg-white border-t border-slate-200 py-6 mt-12">
-                <div className="container mx-auto px-4 text-center text-slate-500 text-sm">
-                  <p>StudyPlanner &copy; {new Date().getFullYear()}</p>
-                  <p className="mt-1">
-                    A smart solution to optimize your study time and achieve
-                    better results
-                  </p>
-                </div>
-              </footer>
-            </div>
-          </StudyProvider>
-        );
-      case "timetable":
-        return (
-          <StudyProvider>
-            <div className="min-h-screen bg-slate-50">
-              <Header
-                user={user}
-                setShowSidebar={() => {}}
-                onReset={handleReset}
-              />
-
-              <main className="container mx-auto px-4 py-6">
-                <div className="max-w-6xl mx-auto">
-                  <TimetableTab />
-                </div>
-              </main>
-
-              <footer className="bg-white border-t border-slate-200 py-6 mt-12">
-                <div className="container mx-auto px-4 text-center text-slate-500 text-sm">
-                  <p>StudyPlanner &copy; {new Date().getFullYear()}</p>
-                  <p className="mt-1">
-                    A smart solution to optimize your study time and achieve
-                    better results
-                  </p>
-                </div>
-              </footer>
-            </div>
-          </StudyProvider>
-        );
-
-      case "schedule":
-        return (
-          <StudyProvider>
-            <div className="min-h-screen bg-slate-50">
-              <main className="container mx-auto px-4 py-6">
-                <div className="max-w-6xl mx-auto">
-                  <AvailabilityTab />
-                </div>
-              </main>
-
-              <footer className="bg-white border-t border-slate-200 py-6 mt-12">
-                <div className="container mx-auto px-4 text-center text-slate-500 text-sm">
-                  <p>StudyPlanner &copy; {new Date().getFullYear()}</p>
-                  <p className="mt-1">
-                    A smart solution to optimize your study time and achieve
-                    better results
-                  </p>
-                </div>
-              </footer>
-            </div>
-          </StudyProvider>
-        );
-
       case "timer":
-        return (
-          <div className="p-4 sm:p-6">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6">
-              Study Timer
-            </h2>
-            <StudyTimer onSessionComplete={handleTimerComplete} />
-          </div>
-        );
+        return <StudyTimer />;
       case "achievements":
         return (
           <AchievementsView
             user={user}
-            totalStudyHours={user.totalStudyHours}
+            totalStudyHours={sessions.reduce((sum, s) => sum + s.duration, 0) / 60}
             totalSessions={sessions.length}
           />
         );
       case "analytics":
         return <AnalyticsView sessions={sessions} />;
-      case "social":
+      case "groups":
         return <StudyGroupsView />;
       case "messages":
         return <MessagesView />;
+      case "availability":
+        return <AvailabilityTab />;
+      case "timetable":
+        return <TimetableTab />;
       default:
-        return (
-          <div className="p-4 sm:p-6 text-center">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-              {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
-            </h2>
-            <p className="text-gray-500">This feature is coming soon!</p>
-          </div>
-        );
+        return <Dashboard user={user} onReset={handleReset} setActiveTab={setActiveTab} />;
     }
   };
 
   return (
-    <div className="flex-1 overflow-y-auto bg-gray-50 relative">
+    <div className="flex-1 overflow-y-auto">
       {renderContent()}
 
       {activeTab !== "messages" && (

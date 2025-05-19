@@ -1,34 +1,41 @@
 import React, { useState, useEffect } from 'react';
-import { StudySession, User, DailyStats } from "../types";
-import { Clock, Calendar, Award, Zap, TrendingUp, Book, Plus } from "lucide-react";
-import {
-  formatTime,
-  calculateDailyStats,
-  groupBySubject,
-} from "../utils/helpers";
+import { StudySession, Subject } from "../types/index copy";
+import { User, DailyStats } from "../types";
+import { Clock, Calendar, Award, Zap, TrendingUp, Book, Plus, Trash2 } from "lucide-react";
+import { formatTime, calculateDailyStats, groupBySubject } from "../utils/helpers";
 import StudyChart from "./StudyChart";
 import StudySessionCard from "./StudySessionCard";
 import SubjectDistribution from "./SubjectDistribution";
 import { StudyPlan } from '../utils/api';
 import api from '../utils/api';
-import AddSessionModal from './AddSessionModal';
+import AddStudySessionModal from './AddStudySessionModal';
 import { useStudyContext } from "./context/StudyContext";
 
 interface DashboardProps {
   user: User;
   onReset: () => void;
+  setActiveTab: (tab: string) => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ user, onReset }) => {
-  const { sessions } = useStudyContext();
+const Dashboard: React.FC<DashboardProps> = ({ user, onReset, setActiveTab }) => {
+  const { sessions, syncStudyPlans, subjects } = useStudyContext();
   const [studyPlans, setStudyPlans] = useState<StudyPlan[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
   console.log(sessions);
 
-  const dailyStats: DailyStats[] = calculateDailyStats(sessions);
-  const recentSessions = [...sessions]
+  // Map sessions to include subject and mood for compatibility with helpers
+  const mappedSessions = sessions.map((s) => ({
+    ...s,
+    subject: subjects.find(sub => sub.id === s.subjectId)?.name || 'Unknown',
+    mood: (s as any).mood || 'focused',
+    duration: s.duration,
+  }));
+
+  const dailyStats: DailyStats[] = calculateDailyStats(mappedSessions);
+  const recentSessions = [...mappedSessions]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 5);
 
@@ -49,7 +56,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset }) => {
     0
   );
 
-  const subjectDistribution = groupBySubject(sessions);
+  const subjectDistribution = groupBySubject(mappedSessions);
 
   // Calculate current streak based on actual study days (not just from user prop)
   // Assumes sessions are sorted by date descending
@@ -80,6 +87,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset }) => {
     try {
       const plans = await api.getStudyPlans();
       setStudyPlans(plans);
+      if (syncStudyPlans) syncStudyPlans(plans);
       setError(null);
     } catch (err) {
       setError('Failed to load study plans. Please try again.');
@@ -95,6 +103,33 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset }) => {
 
   const handleSessionAdded = () => {
     fetchStudyPlans();
+  };
+
+  const handlePlanCreated = () => {
+    setActiveTab('subjects');
+  };
+
+  const handleDeletePlan = async (id: number) => {
+    if (window.confirm("Are you sure you want to delete this study plan?")) {
+      try {
+        await api.deleteStudyPlan(id);
+        fetchStudyPlans(); // Refresh the list after deletion
+      } catch (err) {
+        alert("Failed to delete study plan.");
+      }
+    }
+  };
+
+  // Add this function to handle deleting all study plans
+  const handleDeleteAllPlans = async () => {
+    if (window.confirm("Are you sure you want to delete ALL study plans? This cannot be undone.")) {
+      try {
+        await Promise.all(studyPlans.map(plan => api.deleteStudyPlan(plan.id)));
+        fetchStudyPlans();
+      } catch (err) {
+        alert("Failed to delete all study plans.");
+      }
+    }
   };
 
   if (isLoading) {
@@ -234,13 +269,22 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset }) => {
 
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800">Study Plans</h2>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
-        >
-          <Plus size={20} className="mr-2" />
-          Add Plan
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={handleDeleteAllPlans}
+            className="flex items-center px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-700 transition-colors"
+          >
+            <Trash2 size={20} className="mr-2" />
+            Delete All
+          </button>
+          <button
+            onClick={() => setIsSessionModalOpen(true)}
+            className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+          >
+            <Plus size={20} className="mr-2" />
+            Add Study Session
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -272,14 +316,25 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset }) => {
               <div className="mt-4 text-sm text-gray-500">
                 Created: {new Date(plan.created_at).toLocaleDateString()}
               </div>
+              <div className="flex justify-end mt-2">
+                <button
+                  onClick={() => handleDeletePlan(plan.id)}
+                  className="text-red-500 hover:text-red-700 flex items-center"
+                  title="Delete Study Plan"
+                >
+                  <Trash2 size={18} />
+                  <span className="ml-1">Delete</span>
+                </button>
+              </div>
             </div>
           ))}
         </div>
       )}
 
-      <AddSessionModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+      <AddStudySessionModal
+        isOpen={isSessionModalOpen}
+        onClose={() => setIsSessionModalOpen(false)}
+        subjects={subjects}
         onSessionAdded={handleSessionAdded}
       />
     </div>

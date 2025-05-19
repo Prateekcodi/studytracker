@@ -29,10 +29,10 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: "dashboard", label: "Dashboard", icon: <LineChart size={20} /> },
     { id: "timer", label: "Study Timer", icon: <Clock size={20} /> },
     { id: "subjects", label: "Exam Preperation", icon: <BookOpen size={20} /> },
-    { id: "schedule", label: "Schedule", icon: <Calendar size={20} /> },
+    { id: "timetable", label: "Schedule", icon: <Calendar size={20} /> },
     { id: "achievements", label: "Achievements", icon: <Award size={20} /> },
     { id: "analytics", label: "Analytics", icon: <BarChart size={20} /> },
-    { id: "social", label: "Study Groups", icon: <Users size={20} /> },
+    { id: "groups", label: "Study Groups", icon: <Users size={20} /> },
     { id: "messages", label: "Messages", icon: <MessageSquare size={20} /> },
   ];
 

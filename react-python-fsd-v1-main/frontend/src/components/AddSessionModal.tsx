@@ -8,12 +8,14 @@ interface AddSessionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSessionAdded: () => void;
+  onPlanCreated?: () => void;
 }
 
 const AddSessionModal: React.FC<AddSessionModalProps> = ({ 
   isOpen, 
   onClose,
-  onSessionAdded
+  onSessionAdded,
+  onPlanCreated
 }) => {
   const [subject, setSubject] = useState('');
   const [examDate, setExamDate] = useState('');
@@ -35,6 +37,7 @@ const AddSessionModal: React.FC<AddSessionModalProps> = ({
       
       await api.createStudyPlan(studyPlan);
       onSessionAdded();
+      if (onPlanCreated) onPlanCreated();
       onClose();
       
       // Reset form

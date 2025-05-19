@@ -1,10 +1,18 @@
 import React from 'react';
-import { StudySession } from '../types';
+import { StudySession } from '../types/index copy';
 import { formatTime } from '../utils/helpers';
 import { Calendar, Clock, ThumbsUp, ThumbsDown, FileText } from 'lucide-react';
 
 interface StudySessionCardProps {
-  session: StudySession;
+  session: StudySession & {
+    subject: string;
+    mood?: string;
+    notes?: string;
+  };
+}
+
+interface AnalyticsViewProps {
+  sessions: StudySession[];
 }
 
 // Get icon based on mood

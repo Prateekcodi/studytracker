@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { BarChart, LineChart, PieChart, Calendar, Clock, TrendingUp } from 'lucide-react';
-import { StudySession } from '../../types';
+import { StudySession } from '../../types/index copy';
 import { formatTime, calculateDailyStats, groupBySubject } from '../../utils/helpers';
 import StudyChart from '../StudyChart';
 import SubjectDistribution from '../SubjectDistribution';

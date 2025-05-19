@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Search,
   Send,
@@ -8,201 +8,208 @@ import {
   User,
   MessageSquare,
 } from "lucide-react";
+import {
+  getMessages,
+  sendMessage,
+  Message as ApiMessage,
+  MessageCreate,
+} from "../../api/messages";
 
-interface Message {
-  id: string;
-  senderId: string;
-  text: string;
-  timestamp: string;
-  read: boolean;
-}
+const CURRENT_USER_ID = 1; // TODO: Replace with real user id from auth
 
-interface Chat {
-  id: string;
-  name: string;
-  avatar?: string;
-  lastMessage: string;
-  timestamp: string;
-  unread: number;
-}
-
-const mockChats: Chat[] = [
-  {
-    id: "1",
-    name: "Math Study Group",
-    lastMessage: "Does anyone want to review calculus tonight?",
-    timestamp: "2024-03-19T10:30:00",
-    unread: 3,
-  },
-  {
-    id: "2",
-    name: "Physics Team",
-    lastMessage: "I uploaded the problem set solutions",
-    timestamp: "2024-03-19T09:15:00",
-    unread: 0,
-  },
-  {
-    id: "3",
-    name: "Sarah Johnson",
-    avatar:
-      "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=150",
-    lastMessage: "Thanks for helping with the homework!",
-    timestamp: "2024-03-18T18:45:00",
-    unread: 1,
-  },
+const demoUsers = [
+  { id: 1, name: "You" },
+  { id: 2, name: "Alice" },
+  { id: 3, name: "Bob" },
+];
+const demoGroups = [
+  { id: 1, name: "Math Study Group" },
+  { id: 2, name: "Physics Team" },
 ];
 
-const mockMessages: Message[] = [
-  {
-    id: "1",
-    senderId: "other",
-    text: "Hey everyone! Shall we start our study session?",
-    timestamp: "2024-03-19T10:00:00",
-    read: true,
-  },
-  {
-    id: "2",
-    senderId: "me",
-    text: "Yes, I am ready to begin!",
-    timestamp: "2024-03-19T10:01:00",
-    read: true,
-  },
-  {
-    id: "3",
-    senderId: "other",
-    text: "Great! Lets focus on chapter 5 today",
-    timestamp: "2024-03-19T10:02:00",
-    read: true,
-  },
-];
+const fallbackMessages = {
+  public: [
+    {
+      id: 1,
+      sender_id: 2,
+      content: "Welcome to the public chat!",
+      type: "public",
+      timestamp: new Date().toISOString(),
+    },
+    {
+      id: 2,
+      sender_id: 1,
+      content: "Hi everyone!",
+      type: "public",
+      timestamp: new Date().toISOString(),
+    },
+  ],
+  private: [
+    {
+      id: 3,
+      sender_id: 2,
+      recipient_id: 1,
+      content: "Hey, are you coming to the study session tonight?",
+      type: "private",
+      timestamp: new Date().toISOString(),
+    },
+    {
+      id: 4,
+      sender_id: 1,
+      recipient_id: 2,
+      content: "Yes, I'll be there!",
+      type: "private",
+      timestamp: new Date().toISOString(),
+    },
+  ],
+  group: [
+    {
+      id: 5,
+      sender_id: 3,
+      group_id: 1,
+      content: "Can anyone help me solve this math question: What is the integral of x^2?",
+      type: "group",
+      timestamp: new Date().toISOString(),
+    },
+    {
+      id: 6,
+      sender_id: 2,
+      group_id: 1,
+      content: "Sure! The answer is (1/3)x^3 + C.",
+      type: "group",
+      timestamp: new Date().toISOString(),
+    },
+  ],
+};
 
 const MessagesView: React.FC = () => {
-  const [selectedChat, setSelectedChat] = useState<string | null>(null);
+  const [messages, setMessages] = useState<ApiMessage[]>([]);
   const [newMessage, setNewMessage] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [type, setType] = useState<'public' | 'private' | 'group'>('public');
+  const [recipientId, setRecipientId] = useState<number>(2); // default to Alice
+  const [groupId, setGroupId] = useState<number>(1); // default to first group
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const filteredChats = mockChats.filter((chat) =>
-    chat.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Fetch messages
+  const fetchMessages = async () => {
+    setLoading(true);
+    try {
+      let params: any = { type };
+      if (type === 'private') params.user_id = CURRENT_USER_ID;
+      if (type === 'group') params.group_id = groupId;
+      const msgs = await getMessages(params);
+      setMessages(msgs.reverse());
+      setError(null);
+    } catch (err) {
+      setMessages(fallbackMessages[type]);
+      setError("Failed to load messages (showing example messages)");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  useEffect(() => {
+    fetchMessages();
+    // eslint-disable-next-line
+  }, [type, groupId]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
-
-    // Here you would typically send the message to your backend
-    console.log("Sending message:", newMessage);
-    setNewMessage("");
+    try {
+      const msg: MessageCreate = {
+        content: newMessage,
+        type,
+        sender_id: CURRENT_USER_ID,
+      };
+      if (type === 'private') msg.recipient_id = recipientId;
+      if (type === 'group') msg.group_id = groupId;
+      await sendMessage(msg);
+      setNewMessage("");
+      fetchMessages();
+    } catch {
+      setError("Failed to send message");
+    }
   };
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex">
-      {/* Chats Sidebar */}
-      <div className="w-80 border-r border-gray-200 bg-white">
-        <div className="p-4">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search messages..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <Search
-              className="absolute left-3 top-2.5 text-gray-400"
-              size={20}
-            />
+    <div className="h-[calc(100vh-4rem)] flex flex-col md:flex-row">
+      <div className="flex-1 flex flex-col bg-gray-50">
+        {/* Chat Header */}
+        <div className="bg-white border-b border-gray-200 px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+          <div className="flex items-center space-x-4">
+            <h2 className="text-lg font-semibold text-gray-800">
+              {type === 'public' && 'Public Chat'}
+              {type === 'private' && `Private Chat with ${demoUsers.find(u => u.id === recipientId)?.name}`}
+              {type === 'group' && `Group: ${demoGroups.find(g => g.id === groupId)?.name}`}
+            </h2>
           </div>
-        </div>
-
-        <div className="overflow-y-auto h-[calc(100%-5rem)]">
-          {filteredChats.map((chat) => (
-            <button
-              key={chat.id}
-              className={`w-full p-4 flex items-start space-x-3 hover:bg-gray-50 transition-colors ${
-                selectedChat === chat.id ? "bg-indigo-50" : ""
-              }`}
-              onClick={() => setSelectedChat(chat.id)}
+          <div className="flex flex-wrap gap-2 mt-2 sm:mt-0">
+            <select
+              className="border rounded px-2 py-1"
+              value={type}
+              onChange={e => setType(e.target.value as any)}
             >
-              {chat.avatar ? (
-                <img
-                  src={chat.avatar}
-                  alt={chat.name}
-                  className="w-12 h-12 rounded-full object-cover"
-                />
-              ) : (
-                <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center">
-                  <User className="text-indigo-600" size={24} />
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-baseline">
-                  <h3 className="text-sm font-medium text-gray-900 truncate">
-                    {chat.name}
-                  </h3>
-                  <span className="text-xs text-gray-500">
-                    {new Date(chat.timestamp).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </span>
-                </div>
-                <p className="text-sm text-gray-500 truncate">
-                  {chat.lastMessage}
-                </p>
-              </div>
-              {chat.unread > 0 && (
-                <span className="bg-indigo-600 text-white text-xs px-2 py-1 rounded-full">
-                  {chat.unread}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Chat Area */}
-      {selectedChat ? (
-        <div className="flex-1 flex flex-col bg-gray-50">
-          {/* Chat Header */}
-          <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <h2 className="text-lg font-semibold text-gray-800">
-                {mockChats.find((c) => c.id === selectedChat)?.name}
-              </h2>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button className="p-2 hover:bg-gray-100 rounded-full">
-                <Phone size={20} className="text-gray-600" />
-              </button>
-              <button className="p-2 hover:bg-gray-100 rounded-full">
-                <Video size={20} className="text-gray-600" />
-              </button>
-              <button className="p-2 hover:bg-gray-100 rounded-full">
-                <MoreVertical size={20} className="text-gray-600" />
-              </button>
-            </div>
+              <option value="public">Public</option>
+              <option value="private">Private</option>
+              <option value="group">Group</option>
+            </select>
+            {type === 'private' && (
+              <select
+                className="border rounded px-2 py-1"
+                value={recipientId}
+                onChange={e => setRecipientId(Number(e.target.value))}
+              >
+                {demoUsers.filter(u => u.id !== CURRENT_USER_ID).map(u => (
+                  <option key={u.id} value={u.id}>{u.name}</option>
+                ))}
+              </select>
+            )}
+            {type === 'group' && (
+              <select
+                className="border rounded px-2 py-1"
+                value={groupId}
+                onChange={e => setGroupId(Number(e.target.value))}
+              >
+                {demoGroups.map(g => (
+                  <option key={g.id} value={g.id}>{g.name}</option>
+                ))}
+              </select>
+            )}
           </div>
+        </div>
 
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-4">
-            {mockMessages.map((message) => (
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+          {loading ? (
+            <div className="text-center text-gray-500">Loading...</div>
+          ) : error ? (
+            <div className="text-center text-red-500">{error}</div>
+          ) : messages.length === 0 ? (
+            <div className="text-center text-gray-500">No messages yet.</div>
+          ) : (
+            messages.map((message) => (
               <div
                 key={message.id}
-                className={`flex ${
-                  message.senderId === "me" ? "justify-end" : "justify-start"
-                }`}
+                className={`flex ${message.sender_id === CURRENT_USER_ID ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[70%] px-4 py-2 rounded-lg ${
-                    message.senderId === "me"
+                  className={`max-w-[70%] px-4 py-2 rounded-lg break-words ${
+                    message.sender_id === CURRENT_USER_ID
                       ? "bg-indigo-600 text-white"
                       : "bg-white text-gray-800"
                   }`}
                 >
-                  <p>{message.text}</p>
+                  <p>{message.content}</p>
                   <p
                     className={`text-xs mt-1 ${
-                      message.senderId === "me"
+                      message.sender_id === CURRENT_USER_ID
                         ? "text-indigo-200"
                         : "text-gray-500"
                     }`}
@@ -214,39 +221,33 @@ const MessagesView: React.FC = () => {
                   </p>
                 </div>
               </div>
-            ))}
-          </div>
+            ))
+          )}
+          <div ref={messagesEndRef} />
+        </div>
 
-          {/* Message Input */}
-          <form
-            onSubmit={handleSendMessage}
-            className="bg-white border-t border-gray-200 p-4"
-          >
-            <div className="flex items-center space-x-4">
-              <input
-                type="text"
-                placeholder="Type a message..."
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-              />
-              <button
-                type="submit"
-                className="bg-indigo-600 text-white p-2 rounded-lg hover:bg-indigo-700 transition-colors"
-              >
-                <Send size={20} />
-              </button>
-            </div>
-          </form>
-        </div>
-      ) : (
-        <div className="flex-1 flex items-center justify-center bg-gray-50">
-          <div className="text-center">
-            <MessageSquare size={48} className="mx-auto text-gray-400 mb-4" />
-            <p className="text-gray-600">Select a chat to start messaging</p>
+        {/* Message Input */}
+        <form
+          onSubmit={handleSendMessage}
+          className="bg-white border-t border-gray-200 p-4"
+        >
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+            <input
+              type="text"
+              placeholder="Type a message..."
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+            />
+            <button
+              type="submit"
+              className="bg-indigo-600 text-white p-2 rounded-lg hover:bg-indigo-700 transition-colors"
+            >
+              <Send size={20} />
+            </button>
           </div>
-        </div>
-      )}
+        </form>
+      </div>
     </div>
   );
 };

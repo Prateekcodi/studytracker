@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, CheckCircle } from "lucide-react";
-import { Subject, StudySession } from "../../types";
+import { Subject, StudySession } from "../../types/index copy";
 import { formatDate, getWeekDates } from "../../utils/planner";
 import { useStudyContext } from "./../context/StudyContext";
 import Button from "../ui/Button";

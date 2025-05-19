@@ -4,8 +4,10 @@ from fastapi.responses import JSONResponse
 import os
 from dotenv import load_dotenv
 from .database import engine, Base
-from .routes import study_plans
+from .routes import study_plans, messages, api
 import logging
+from .models.user import User
+from .models.message import Message
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -28,6 +30,8 @@ app.add_middleware(
 )
 # Include routers
 app.include_router(study_plans.router, prefix="/api/study-plans", tags=["study-plans"])
+app.include_router(messages.router)
+app.include_router(api.router)
 
 @app.on_event("startup")
 async def startup():

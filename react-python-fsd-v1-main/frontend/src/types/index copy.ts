@@ -35,6 +35,8 @@ export interface StudySession {
   date: string;
   duration: number;
   completed: boolean;
+  mood?: string;
+  notes?: string;
 }
 
 export interface StudyPlan {

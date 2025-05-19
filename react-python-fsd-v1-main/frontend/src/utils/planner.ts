@@ -69,27 +69,27 @@ export const generateStudyPlan = (
       for (const subject of subjectHours) {
         if (subject.totalHours <= 0 || subject.chapters.length === 0) continue;
 
-        // Allocate at most 2 hours per session or remaining hours, whichever is less
+        // Allocate at most 30 minutes per session or remaining minutes, whichever is less
         const chapter = subject.chapters[0];
-        const hoursForThisSession = Math.min(
-          2,
-          remainingHours,
-          chapter.estimatedHours
+        const minutesForThisSession = Math.min(
+          30,
+          remainingHours * 60,
+          chapter.estimatedHours * 60
         );
 
-        if (hoursForThisSession > 0) {
+        if (minutesForThisSession > 0) {
           sessions.push({
             id: `session-${sessions.length + 1}`,
             subjectId: subject.subjectId,
             chapterId: chapter.id,
             date: currentDate.toISOString().split("T")[0],
-            duration: hoursForThisSession,
+            duration: minutesForThisSession,
             completed: false,
           });
 
-          remainingHours -= hoursForThisSession;
-          subject.totalHours -= hoursForThisSession;
-          chapter.estimatedHours -= hoursForThisSession;
+          remainingHours -= minutesForThisSession / 60;
+          subject.totalHours -= minutesForThisSession / 60;
+          chapter.estimatedHours -= minutesForThisSession / 60;
 
           // Remove chapter if completed
           if (chapter.estimatedHours <= 0) {

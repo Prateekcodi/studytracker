@@ -1,4 +1,5 @@
-import { StudySession, DailyStats } from "../types";
+import { StudySession } from "../types/index copy";
+import { DailyStats } from "../types";
 
 // Generate a random ID
 export const generateId = (): string => {
@@ -20,7 +21,7 @@ export const formatTime = (minutes: number): string => {
 };
 
 // Calculate daily statistics from study sessions
-export const calculateDailyStats = (sessions: StudySession[]): DailyStats[] => {
+export const calculateDailyStats = (sessions: (StudySession & { subject: string; mood?: string })[]): DailyStats[] => {
   const dailyMap: { [key: string]: DailyStats } = {};
 
   sessions.forEach((session) => {
@@ -52,10 +53,11 @@ export const calculateDailyStats = (sessions: StudySession[]): DailyStats[] => {
     const moodCounts: { [key: string]: number } = {};
 
     dateSessions.forEach((session) => {
-      if (!moodCounts[session.mood]) {
-        moodCounts[session.mood] = 0;
+      const mood = session.mood || 'focused';
+      if (!moodCounts[mood]) {
+        moodCounts[mood] = 0;
       }
-      moodCounts[session.mood] += 1;
+      moodCounts[mood] += 1;
     });
 
     let mostFrequentMood = "";
@@ -78,7 +80,11 @@ export const calculateDailyStats = (sessions: StudySession[]): DailyStats[] => {
 
 // Get current streak (consecutive days with study sessions)
 export const calculateStreak = (sessions: StudySession[]): number => {
-  const dailyStats = calculateDailyStats(sessions);
+  const dailyStats = calculateDailyStats(sessions.map(s => ({
+    ...s,
+    subject: 'Unknown',
+    mood: 'focused'
+  })));
   let streak = 0;
   const today = new Date().toISOString().split("T")[0];
 
@@ -105,7 +111,7 @@ export const calculateStreak = (sessions: StudySession[]): number => {
 
 // Group study sessions by subject
 export const groupBySubject = (
-  sessions: StudySession[]
+  sessions: (StudySession & { subject: string })[]
 ): { subject: string; totalMinutes: number }[] => {
   const subjectMap: { [key: string]: number } = {};
 

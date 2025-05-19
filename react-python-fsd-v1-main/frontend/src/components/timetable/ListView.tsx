@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { CheckCircle, Circle, ChevronLeft, ChevronRight } from "lucide-react";
-import { Subject, StudySession } from "../../types";
+import { Subject, StudySession } from "../../types/index copy";
 import { formatDate } from "../../utils/planner";
 import { useStudyContext } from "./../context/StudyContext";
 import Button from "../ui/Button";

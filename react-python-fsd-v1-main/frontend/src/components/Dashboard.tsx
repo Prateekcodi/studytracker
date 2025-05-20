@@ -322,10 +322,8 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, setActiveTab, stud
         onClose={() => setIsSessionModalOpen(false)}
         subjects={subjects}
         onAdd={(session) => {
-          // addSession expects a StudySession, but session is Omit<StudySession, 'id'>
-          // We'll generate a temporary id for the new session
+          console.log("Dashboard subjects (passed to AddStudySessionModal):", subjects, "length:", subjects.length);
           const newSession = { ...session, id: `session-${Date.now()}` };
-          // addSession comes from useStudyContext
           // @ts-ignore
           addSession(newSession);
           setIsSessionModalOpen(false);

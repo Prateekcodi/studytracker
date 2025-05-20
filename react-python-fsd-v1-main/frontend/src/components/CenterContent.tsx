@@ -132,6 +132,7 @@ const CenterContent: React.FC<CenterContentProps> = ({ activeTab, setActiveTab }
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSessionAdded={fetchStudyPlans}
+        studyPlans={studyPlans}
       />
     </div>
   );

@@ -8,12 +8,6 @@ import {
   User,
   MessageSquare,
 } from "lucide-react";
-import {
-  getMessages,
-  sendMessage,
-  Message as ApiMessage,
-  MessageCreate,
-} from "../../api/messages";
 
 const CURRENT_USER_ID = 1; // TODO: Replace with real user id from auth
 
@@ -27,57 +21,92 @@ const demoGroups = [
   { id: 2, name: "Physics Team" },
 ];
 
+type MessageType = 'public' | 'private' | 'group';
+
+interface ApiMessage {
+  id: number;
+  sender_id: number;
+  recipient_id?: number;
+  group_id?: number;
+  content: string;
+  type: MessageType;
+  timestamp: string;
+}
+
 const fallbackMessages = {
   public: [
     {
       id: 1,
       sender_id: 2,
       content: "Welcome to the public chat!",
-      type: "public",
-      timestamp: new Date().toISOString(),
+      type: "public" as MessageType,
+      timestamp: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
     },
     {
       id: 2,
+      sender_id: 3,
+      content: "Hi everyone! Ready for the study session?",
+      type: "public" as MessageType,
+      timestamp: new Date(Date.now() - 1000 * 60 * 8).toISOString(),
+    },
+    {
+      id: 3,
       sender_id: 1,
-      content: "Hi everyone!",
-      type: "public",
-      timestamp: new Date().toISOString(),
+      content: "Absolutely! Let's get started.",
+      type: "public" as MessageType,
+      timestamp: new Date(Date.now() - 1000 * 60 * 7).toISOString(),
     },
   ],
   private: [
     {
-      id: 3,
+      id: 4,
       sender_id: 2,
       recipient_id: 1,
       content: "Hey, are you coming to the study session tonight?",
-      type: "private",
-      timestamp: new Date().toISOString(),
+      type: "private" as MessageType,
+      timestamp: new Date(Date.now() - 1000 * 60 * 12).toISOString(),
     },
     {
-      id: 4,
+      id: 5,
       sender_id: 1,
       recipient_id: 2,
       content: "Yes, I'll be there!",
-      type: "private",
-      timestamp: new Date().toISOString(),
-    },
-  ],
-  group: [
-    {
-      id: 5,
-      sender_id: 3,
-      group_id: 1,
-      content: "Can anyone help me solve this math question: What is the integral of x^2?",
-      type: "group",
-      timestamp: new Date().toISOString(),
+      type: "private" as MessageType,
+      timestamp: new Date(Date.now() - 1000 * 60 * 11).toISOString(),
     },
     {
       id: 6,
       sender_id: 2,
+      recipient_id: 1,
+      content: "Great! See you at 7 PM.",
+      type: "private" as MessageType,
+      timestamp: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
+    },
+  ],
+  group: [
+    {
+      id: 7,
+      sender_id: 3,
+      group_id: 1,
+      content: "Can anyone help me solve this math question: What is the integral of x^2?",
+      type: "group" as MessageType,
+      timestamp: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+    },
+    {
+      id: 8,
+      sender_id: 2,
       group_id: 1,
       content: "Sure! The answer is (1/3)x^3 + C.",
-      type: "group",
-      timestamp: new Date().toISOString(),
+      type: "group" as MessageType,
+      timestamp: new Date(Date.now() - 1000 * 60 * 14).toISOString(),
+    },
+    {
+      id: 9,
+      sender_id: 1,
+      group_id: 1,
+      content: "Thanks! That makes sense.",
+      type: "group" as MessageType,
+      timestamp: new Date(Date.now() - 1000 * 60 * 13).toISOString(),
     },
   ],
 };

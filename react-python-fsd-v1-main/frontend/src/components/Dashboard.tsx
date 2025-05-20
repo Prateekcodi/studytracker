@@ -18,7 +18,7 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ user, onReset, setActiveTab }) => {
-  const { sessions, syncStudyPlans, subjects } = useStudyContext();
+  const { sessions, syncStudyPlans, subjects, addSession } = useStudyContext();
   const [studyPlans, setStudyPlans] = useState<StudyPlan[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -339,8 +339,17 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, setActiveTab }) =>
       <AddStudySessionModal
         isOpen={isSessionModalOpen}
         onClose={() => setIsSessionModalOpen(false)}
-        subjects={subjects}
-        onSessionAdded={handleSessionAdded}
+        subjects={subjects.map(s => s.name)}
+        onAdd={(session) => {
+          // addSession expects a StudySession, but session is Omit<StudySession, 'id'>
+          // We'll generate a temporary id for the new session
+          const newSession = { ...session, id: `session-${Date.now()}` };
+          // addSession comes from useStudyContext
+          // @ts-ignore
+          addSession(newSession);
+          setIsSessionModalOpen(false);
+          fetchStudyPlans();
+        }}
       />
     </div>
   );

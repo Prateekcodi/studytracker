@@ -16,6 +16,8 @@ import { StudyProvider, useStudyContext } from "./context/StudyContext";
 import AvailabilityTab from "./availability/AvailabilityTab";
 import SubjectsTab from "./subjects/SubjectsTab";
 import TimetableTab from "./timetable/TimetableTab";
+import { StudyPlan } from '../utils/api';
+import api from '../utils/api';
 // import SubjectsTab from "./subjects/SubjectsTab";
 
 interface CenterContentProps {
@@ -27,6 +29,26 @@ const CenterContent: React.FC<CenterContentProps> = ({ activeTab, setActiveTab }
   const { sessions } = useStudyContext();
   const [user] = useLocalStorage<User>("user", mockUser);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [studyPlans, setStudyPlans] = useState<StudyPlan[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchStudyPlans = async () => {
+    try {
+      const plans = await api.getStudyPlans();
+      setStudyPlans(plans);
+      setError(null);
+    } catch (err) {
+      setError('Failed to load study plans. Please try again.');
+      console.error('Error fetching study plans:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchStudyPlans();
+  }, []);
 
   const handleReset = () => {
     localStorage.clear();
@@ -41,6 +63,10 @@ const CenterContent: React.FC<CenterContentProps> = ({ activeTab, setActiveTab }
             user={user} 
             onReset={handleReset} 
             setActiveTab={setActiveTab} 
+            studyPlans={studyPlans}
+            fetchStudyPlans={fetchStudyPlans}
+            isLoading={isLoading}
+            error={error}
           />
         );
       case "subjects":
@@ -86,7 +112,7 @@ const CenterContent: React.FC<CenterContentProps> = ({ activeTab, setActiveTab }
       case "timetable":
         return <TimetableTab />;
       default:
-        return <Dashboard user={user} onReset={handleReset} setActiveTab={setActiveTab} />;
+        return <Dashboard user={user} onReset={handleReset} setActiveTab={setActiveTab} studyPlans={studyPlans} fetchStudyPlans={fetchStudyPlans} isLoading={isLoading} error={error} />;
     }
   };
 
@@ -106,7 +132,7 @@ const CenterContent: React.FC<CenterContentProps> = ({ activeTab, setActiveTab }
       <AddSessionModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSessionAdded={() => {}}
+        onSessionAdded={fetchStudyPlans}
       />
     </div>
   );

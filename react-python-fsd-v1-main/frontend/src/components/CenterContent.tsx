@@ -48,15 +48,24 @@ const CenterContent: React.FC<CenterContentProps> = ({ activeTab, setActiveTab }
   };
 
   React.useEffect(() => {
-    const autoAddDefaultPlan = async () => {
+    const autoAddDefaultPlans = async () => {
       await fetchStudyPlans();
       if (studyPlans.length === 0) {
-        // Add a default study plan if none exist
-        await api.createStudyPlan({ subject: 'Mathematics', exam_date: '2025-05-20', description: 'Default subject for demo' });
+        // Add several default study plans if none exist
+        const defaultPlans = [
+          { subject: 'Mathematics', exam_date: '2025-05-20', description: 'Default subject for demo' },
+          { subject: 'Physics', exam_date: '2025-05-21', description: 'Default subject for demo' },
+          { subject: 'Chemistry', exam_date: '2025-05-22', description: 'Default subject for demo' },
+          { subject: 'Computer Science', exam_date: '2025-05-23', description: 'Default subject for demo' },
+          { subject: 'History', exam_date: '2025-05-24', description: 'Default subject for demo' },
+        ];
+        for (const plan of defaultPlans) {
+          await api.createStudyPlan(plan);
+        }
         await fetchStudyPlans();
       }
     };
-    autoAddDefaultPlan();
+    autoAddDefaultPlans();
   }, []);
 
   const handleReset = () => {

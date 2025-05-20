@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { StudySession } from "../types/index copy";
+import { StudySession, Subject } from "../types/index copy";
 import { useStudyContext } from "./context/StudyContext";
 
 interface AddStudySessionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAdd: (session: Omit<StudySession, 'id'>) => void;
-  subjects: string[];
+  subjects: Subject[];
 }
 
 const moods = ["focused", "motivated", "neutral", "tired", "distracted"] as const;
@@ -20,7 +20,7 @@ const AddStudySessionModal: React.FC<AddStudySessionModalProps> = ({
   subjects,
 }) => {
   const { addSession } = useStudyContext();
-  const [subject, setSubject] = useState("");
+  const [subjectId, setSubjectId] = useState<string>("");
   const [duration, setDuration] = useState(30);
   const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [mood, setMood] = useState<Mood>("focused");
@@ -29,9 +29,11 @@ const AddStudySessionModal: React.FC<AddStudySessionModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onAdd({
-      subject,
-      duration,
+      subjectId,
+      chapterId: "", // or handle chapter selection if needed
       date,
+      duration,
+      completed: false,
       mood,
       notes: notes.trim() || undefined,
     });
@@ -58,15 +60,15 @@ const AddStudySessionModal: React.FC<AddStudySessionModalProps> = ({
                   Subject
                 </label>
                 <select
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
+                  value={subjectId}
+                  onChange={(e) => setSubjectId(e.target.value)}
                   className="w-full border-gray-300 rounded-md shadow-sm"
                   required
                 >
                   <option value="">Select subject</option>
                   {subjects.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
+                    <option key={s.id} value={s.id}>
+                      {s.name}
                     </option>
                   ))}
                 </select>

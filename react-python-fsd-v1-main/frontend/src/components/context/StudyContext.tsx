@@ -219,7 +219,7 @@ export const StudyProvider: React.FC<{ children: React.ReactNode }> = ({
     }));
     setSubjects(newSubjects);
     // Regenerate sessions for new subjects
-    setTimeout(() => generatePlan(), 0);
+    // setTimeout(() => generatePlan(), 0); // DISABLED: Do not auto-generate sessions for all days
   };
 
   return (

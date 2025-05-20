@@ -19,6 +19,7 @@ const AddStudySessionModal: React.FC<AddStudySessionModalProps> = ({
   onAdd,
   subjects,
 }) => {
+  console.log("AddStudySessionModal subjects:", subjects, "length:", subjects.length);
   const { addSession } = useStudyContext();
   const [subjectId, setSubjectId] = useState<string>("");
   const [duration, setDuration] = useState(30);

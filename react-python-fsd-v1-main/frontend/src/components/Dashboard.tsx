@@ -15,14 +15,14 @@ interface DashboardProps {
   user: User;
   onReset: () => void;
   setActiveTab: (tab: string) => void;
+  studyPlans: StudyPlan[];
+  fetchStudyPlans: () => Promise<void>;
+  isLoading: boolean;
+  error: string | null;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ user, onReset, setActiveTab }) => {
+const Dashboard: React.FC<DashboardProps> = ({ user, onReset, setActiveTab, studyPlans, fetchStudyPlans, isLoading, error }) => {
   const { sessions, syncStudyPlans, subjects, addSession } = useStudyContext();
-  const [studyPlans, setStudyPlans] = useState<StudyPlan[]>([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
   console.log(sessions);
 
@@ -82,25 +82,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, setActiveTab }) =>
 
   // Use calculated streak instead of user.currentStreak
   user = { ...user, currentStreak: streak };
-
-  const fetchStudyPlans = async () => {
-    try {
-      const plans = await api.getStudyPlans();
-      console.log('Fetched study plans:', plans);
-      setStudyPlans(plans);
-      if (syncStudyPlans) syncStudyPlans(plans);
-      setError(null);
-    } catch (err) {
-      setError('Failed to load study plans. Please try again.');
-      console.error('Error fetching study plans:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchStudyPlans();
-  }, []);
 
   const handleSessionAdded = () => {
     fetchStudyPlans();

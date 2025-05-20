@@ -71,25 +71,23 @@ const CenterContent: React.FC<CenterContentProps> = ({ activeTab, setActiveTab }
         );
       case "subjects":
         return (
-          <StudyProvider>
-            <div className="min-h-screen bg-slate-50">
-              <main className="container mx-auto px-4 py-6">
-                <div className="max-w-6xl mx-auto">
-                  <SubjectsTab />
-                </div>
-              </main>
+          <div className="min-h-screen bg-slate-50">
+            <main className="container mx-auto px-4 py-6">
+              <div className="max-w-6xl mx-auto">
+                <SubjectsTab />
+              </div>
+            </main>
 
-              <footer className="bg-white border-t border-slate-200 py-6 mt-12">
-                <div className="container mx-auto px-4 text-center text-slate-500 text-sm">
-                  <p>StudyPlanner &copy; {new Date().getFullYear()}</p>
-                  <p className="mt-1">
-                    A smart solution to optimize your study time and achieve
-                    better results
-                  </p>
-                </div>
-              </footer>
-            </div>
-          </StudyProvider>
+            <footer className="bg-white border-t border-slate-200 py-6 mt-12">
+              <div className="container mx-auto px-4 text-center text-slate-500 text-sm">
+                <p>StudyPlanner &copy; {new Date().getFullYear()}</p>
+                <p className="mt-1">
+                  A smart solution to optimize your study time and achieve
+                  better results
+                </p>
+              </div>
+            </footer>
+          </div>
         );
       case "timer":
         return <StudyTimer />;

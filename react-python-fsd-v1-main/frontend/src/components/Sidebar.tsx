@@ -10,6 +10,7 @@ import {
   Users,
   MessageSquare,
   HelpCircle,
+  LogOut,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -28,7 +29,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: <LineChart size={20} /> },
     { id: "timer", label: "Study Timer", icon: <Clock size={20} /> },
-    { id: "subjects", label: "Exam Preperation", icon: <BookOpen size={20} /> },
+    { id: "subjects", label: "Exam Preparation", icon: <BookOpen size={20} /> },
     { id: "timetable", label: "Schedule", icon: <Calendar size={20} /> },
     { id: "achievements", label: "Achievements", icon: <Award size={20} /> },
     { id: "analytics", label: "Analytics", icon: <BarChart size={20} /> },
@@ -38,71 +39,89 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <>
-      {/* Mobile overlay */}
+      {/* Mobile overlay with blur effect */}
       {showSidebar && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-20 md:hidden transition-opacity duration-300"
           onClick={() => setShowSidebar(false)}
-        ></div>
+        />
       )}
 
       {/* Sidebar */}
       <aside
         className={`
-        fixed top-0 left-0 h-full w-64 bg-indigo-900 text-white z-30 transition-transform duration-300 transform
-        ${showSidebar ? "translate-x-0" : "-translate-x-full"} md:translate-x-0
-      `}
+          fixed top-0 left-0 h-full w-72 bg-gradient-to-b from-indigo-900 to-indigo-800 text-white z-30 
+          transition-all duration-300 ease-in-out transform
+          ${showSidebar ? "translate-x-0" : "-translate-x-full"} 
+          md:translate-x-0 shadow-xl
+        `}
       >
-        <div className="p-6">
-          <h1 className="text-2xl font-bold flex items-center">
-            <BookOpen className="mr-2" />
-            StudyTracker
+        <div className="p-6 border-b border-indigo-700/50">
+          <h1 className="text-2xl font-bold flex items-center space-x-2">
+            <BookOpen className="text-indigo-300" />
+            <span className="bg-gradient-to-r from-white to-indigo-200 bg-clip-text text-transparent">
+              StudyTracker
+            </span>
           </h1>
         </div>
 
-        <nav className="mt-6">
-          <ul>
+        <nav className="mt-6 px-3">
+          <ul className="space-y-1">
             {menuItems.map((item) => (
               <li key={item.id}>
                 <button
                   className={`
-                    flex items-center w-full px-6 py-3 text-left
+                    flex items-center w-full px-4 py-3 text-left rounded-lg
+                    transition-all duration-200 ease-in-out
                     ${
                       activeTab === item.id
-                        ? "bg-indigo-800 border-l-4 border-white"
-                        : "hover:bg-indigo-800 border-l-4 border-transparent"
+                        ? "bg-white/10 text-white shadow-lg shadow-indigo-500/20"
+                        : "text-indigo-100 hover:bg-white/5 hover:text-white"
                     }
-                    transition-all duration-200
+                    group
                   `}
                   onClick={() => {
                     setActiveTab(item.id);
                     setShowSidebar(false);
                   }}
                 >
-                  <span className="mr-3">{item.icon}</span>
-                  <span>{item.label}</span>
+                  <span className={`
+                    mr-3 transition-transform duration-200
+                    ${activeTab === item.id ? "text-white" : "text-indigo-300 group-hover:text-white"}
+                  `}>
+                    {item.icon}
+                  </span>
+                  <span className="font-medium">{item.label}</span>
                 </button>
               </li>
             ))}
           </ul>
         </nav>
 
-        <div className="absolute bottom-0 w-full p-6">
-          <ul>
+        <div className="absolute bottom-0 w-full p-4 border-t border-indigo-700/50 bg-indigo-900/50 backdrop-blur-sm">
+          <ul className="space-y-1">
             <li>
-              <button className="flex items-center w-full px-6 py-3 text-left hover:bg-indigo-800 transition-all duration-200">
-                <span className="mr-3">
+              <button className="flex items-center w-full px-4 py-3 text-left rounded-lg text-indigo-100 hover:bg-white/5 hover:text-white transition-colors duration-200">
+                <span className="mr-3 text-indigo-300">
                   <Settings size={20} />
                 </span>
-                <span>Settings</span>
+                <span className="font-medium">Settings</span>
               </button>
             </li>
             <li>
-              <button className="flex items-center w-full px-6 py-3 text-left hover:bg-indigo-800 transition-all duration-200">
-                <span className="mr-3">
+              <button className="flex items-center w-full px-4 py-3 text-left rounded-lg text-indigo-100 hover:bg-white/5 hover:text-white transition-colors duration-200">
+                <span className="mr-3 text-indigo-300">
                   <HelpCircle size={20} />
                 </span>
-                <span>Help</span>
+                <span className="font-medium">Help & Support</span>
+              </button>
+            </li>
+            <li>
+              <button className="flex items-center w-full px-4 py-3 text-left rounded-lg text-red-300 hover:bg-red-500/10 hover:text-red-200 transition-colors duration-200">
+                <span className="mr-3">
+                  <LogOut size={20} />
+                </span>
+                <span className="font-medium">Logout</span>
               </button>
             </li>
           </ul>
@@ -113,3 +132,4 @@ const Sidebar: React.FC<SidebarProps> = ({
 };
 
 export default Sidebar;
+

@@ -86,6 +86,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, setActiveTab }) =>
   const fetchStudyPlans = async () => {
     try {
       const plans = await api.getStudyPlans();
+      console.log('Fetched study plans:', plans);
       setStudyPlans(plans);
       if (syncStudyPlans) syncStudyPlans(plans);
       setError(null);
@@ -138,6 +139,10 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, setActiveTab }) =>
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
       </div>
     );
+  }
+
+  if (!Array.isArray(studyPlans)) {
+    return <div className="text-red-500">Study plans data is invalid.</div>;
   }
 
   return (

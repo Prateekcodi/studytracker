@@ -1,6 +1,6 @@
 import { axiosInstance } from '../utils/api';
 
-const API_URL = '/messages';
+const API_URL = '/api/messages';
 
 export interface Message {
   id: number;

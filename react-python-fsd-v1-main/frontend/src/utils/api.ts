@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create axios instance with default config
 const axiosInstance = axios.create({
-  baseURL: 'https://studytracker-production-6ab9.up.railway.app',
+  baseURL: 'https://studytracker-production-6ab9.up.railway.app/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -79,7 +79,7 @@ const api = {
   createStudyPlan: async (data: CreateStudyPlan): Promise<StudyPlan> => {
     try {
       console.log('Sending data to create study plan:', data);
-      const response = await axiosInstance.post('/study-plans/', data);
+      const response = await axiosInstance.post('/api/study-plans/', data);
       console.log('Response from create study plan:', response.data);
       return response.data;
     } catch (error) {
@@ -94,7 +94,7 @@ const api = {
 
   updateStudyPlan: async (id: number, data: CreateStudyPlan): Promise<StudyPlan> => {
     try {
-      const response = await axiosInstance.put(`/study-plans/${id}`, data);
+      const response = await axiosInstance.put(`/api/study-plans/${id}`, data);
       return response.data;
     } catch (error) {
       console.error('Error in updateStudyPlan:', error);
@@ -104,7 +104,7 @@ const api = {
 
   deleteStudyPlan: async (id: number): Promise<void> => {
     try {
-      await axiosInstance.delete(`/study-plans/${id}`);
+      await axiosInstance.delete(`/api/study-plans/${id}`);
     } catch (error) {
       console.error('Error in deleteStudyPlan:', error);
       throw error;

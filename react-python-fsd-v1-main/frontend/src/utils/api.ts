@@ -14,6 +14,12 @@ const axiosInstance = axios.create({
 // Add request interceptor for logging
 axiosInstance.interceptors.request.use(
   (config) => {
+    if (config.baseURL && config.baseURL.startsWith('http://')) {
+      config.baseURL = config.baseURL.replace('http://', 'https://');
+    }
+    if (config.url && config.url.startsWith('http://')) {
+      config.url = config.url.replace('http://', 'https://');
+    }
     console.log('Making request to:', config.url);
     return config;
   },

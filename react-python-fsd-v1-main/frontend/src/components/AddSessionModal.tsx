@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { useStudyContext } from "./context/StudyContext";
-import api, { CreateStudyPlan } from '../utils/api';
+import api, { CreateStudyPlan, StudyPlan } from '../utils/api';
 import axios from 'axios';
 
 interface AddSessionModalProps {
@@ -9,15 +9,16 @@ interface AddSessionModalProps {
   onClose: () => void;
   onSessionAdded: () => void;
   onPlanCreated?: () => void;
+  studyPlans: StudyPlan[];
 }
 
 const AddSessionModal: React.FC<AddSessionModalProps> = ({ 
   isOpen, 
   onClose,
   onSessionAdded,
-  onPlanCreated
+  onPlanCreated,
+  studyPlans
 }) => {
-  const { subjects } = useStudyContext();
   const [subject, setSubject] = useState('');
   const [examDate, setExamDate] = useState('');
   const [description, setDescription] = useState('');
@@ -108,8 +109,8 @@ const AddSessionModal: React.FC<AddSessionModalProps> = ({
                   disabled={isLoading}
                 >
                   <option value="">Select subject</option>
-                  {subjects.map(s => (
-                    <option key={s.id} value={s.name}>{s.name}</option>
+                  {Array.from(new Set(studyPlans.map(plan => plan.subject))).map(subject => (
+                    <option key={subject} value={subject}>{subject}</option>
                   ))}
                 </select>
               </div>

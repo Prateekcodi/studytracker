@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
-import { subjects } from '../data/mockData';
+import { useStudyContext } from "./context/StudyContext";
 import api, { CreateStudyPlan } from '../utils/api';
 import axios from 'axios';
 
@@ -17,6 +17,7 @@ const AddSessionModal: React.FC<AddSessionModalProps> = ({
   onSessionAdded,
   onPlanCreated
 }) => {
+  const { subjects } = useStudyContext();
   const [subject, setSubject] = useState('');
   const [examDate, setExamDate] = useState('');
   const [description, setDescription] = useState('');

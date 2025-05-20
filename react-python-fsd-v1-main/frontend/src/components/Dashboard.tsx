@@ -339,7 +339,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, onReset, setActiveTab }) =>
       <AddStudySessionModal
         isOpen={isSessionModalOpen}
         onClose={() => setIsSessionModalOpen(false)}
-        subjects={subjects.map(s => s.name)}
+        subjects={subjects}
         onAdd={(session) => {
           // addSession expects a StudySession, but session is Omit<StudySession, 'id'>
           // We'll generate a temporary id for the new session

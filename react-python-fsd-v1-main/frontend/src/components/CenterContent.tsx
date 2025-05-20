@@ -26,7 +26,7 @@ interface CenterContentProps {
 }
 
 const CenterContent: React.FC<CenterContentProps> = ({ activeTab, setActiveTab }) => {
-  const { sessions } = useStudyContext();
+  const { sessions, syncStudyPlans } = useStudyContext();
   const [user] = useLocalStorage<User>("user", mockUser);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [studyPlans, setStudyPlans] = useState<StudyPlan[]>([]);
@@ -37,6 +37,7 @@ const CenterContent: React.FC<CenterContentProps> = ({ activeTab, setActiveTab }
     try {
       const plans = await api.getStudyPlans();
       setStudyPlans(plans);
+      if (syncStudyPlans) syncStudyPlans(plans);
       setError(null);
     } catch (err) {
       setError('Failed to load study plans. Please try again.');

@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create axios instance with default config
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:8000/api',
+  baseURL: 'studytracker-production-6ab9.up.railway.app',
   headers: {
     'Content-Type': 'application/json',
   },

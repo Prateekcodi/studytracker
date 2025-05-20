@@ -85,33 +85,18 @@ const fallbackMessages = {
 const MessagesView: React.FC = () => {
   const [messages, setMessages] = useState<ApiMessage[]>([]);
   const [newMessage, setNewMessage] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [type, setType] = useState<'public' | 'private' | 'group'>('public');
   const [recipientId, setRecipientId] = useState<number>(2); // default to Alice
   const [groupId, setGroupId] = useState<number>(1); // default to first group
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Fetch messages
-  const fetchMessages = async () => {
-    setLoading(true);
-    try {
-      let params: any = { type };
-      if (type === 'private') params.user_id = CURRENT_USER_ID;
-      if (type === 'group') params.group_id = groupId;
-      const msgs = await getMessages(params);
-      setMessages(msgs.reverse());
-      setError(null);
-    } catch (err) {
-      setMessages(fallbackMessages[type]);
-      setError("Failed to load messages (showing example messages)");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Use only static fallbackMessages
   useEffect(() => {
-    fetchMessages();
+    setMessages((fallbackMessages[type] as ApiMessage[]).slice().reverse());
+    setError(null);
+    setLoading(false);
     // eslint-disable-next-line
   }, [type, groupId]);
 
@@ -122,20 +107,18 @@ const MessagesView: React.FC = () => {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
-    try {
-      const msg: MessageCreate = {
-        content: newMessage,
-        type,
-        sender_id: CURRENT_USER_ID,
-      };
-      if (type === 'private') msg.recipient_id = recipientId;
-      if (type === 'group') msg.group_id = groupId;
-      await sendMessage(msg);
-      setNewMessage("");
-      fetchMessages();
-    } catch {
-      setError("Failed to send message");
-    }
+    // Add new message to static messages
+    const msg: ApiMessage = {
+      id: Date.now(),
+      sender_id: 1, // You
+      content: newMessage,
+      type: type as 'public' | 'private' | 'group',
+      timestamp: new Date().toISOString(),
+      ...(type === 'private' ? { recipient_id: recipientId } : {}),
+      ...(type === 'group' ? { group_id: groupId } : {}),
+    };
+    setMessages([msg, ...messages]);
+    setNewMessage("");
   };
 
   return (

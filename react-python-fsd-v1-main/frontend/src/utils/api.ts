@@ -58,7 +58,7 @@ const api = {
   // Study Plans
   getStudyPlans: async (): Promise<StudyPlan[]> => {
     try {
-      const response = await axiosInstance.get('/study-plans/');
+      const response = await axiosInstance.get('/api/study-plans/');
       return response.data;
     } catch (error) {
       console.error('Error in getStudyPlans:', error);
@@ -68,7 +68,7 @@ const api = {
 
   getStudyPlan: async (id: number): Promise<StudyPlan> => {
     try {
-      const response = await axiosInstance.get(`/study-plans/${id}`);
+      const response = await axiosInstance.get(`/api/study-plans/${id}`);
       return response.data;
     } catch (error) {
       console.error('Error in getStudyPlan:', error);

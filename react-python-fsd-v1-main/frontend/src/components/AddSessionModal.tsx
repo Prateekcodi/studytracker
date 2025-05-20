@@ -101,18 +101,15 @@ const AddSessionModal: React.FC<AddSessionModalProps> = ({
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Subject
                 </label>
-                <select
+                <input
+                  type="text"
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
                   className="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="Enter subject name"
                   required
                   disabled={isLoading}
-                >
-                  <option value="">Select subject</option>
-                  {Array.from(new Set(studyPlans.map(plan => plan.subject))).map(subject => (
-                    <option key={subject} value={subject}>{subject}</option>
-                  ))}
-                </select>
+                />
               </div>
               
               {/* Exam Date */}
